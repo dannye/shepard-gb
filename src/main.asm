@@ -1,44 +1,51 @@
 include "constants.asm"
 
 
-section "Main", rom0
+section "Main WRAM", wram0
 
-START_TILE = 0
-X = 5
-Y = 7
-HEIGHT = 4
-WIDTH = 10
+wFrequencyTimer: ds 1
+
+
+section "Main", rom0
 
 Main::
 	call .Setup
 .loop
 	call WaitVBlank
+	call IncFrequency
 	jr .loop
 
 .Setup:
-	ld bc, .Graphics
-	ld de, vChars2
-	ld a, WIDTH * HEIGHT
-	call QueueGfx
-
-	callback .DrawTilemap
-
-	call .SetPalette
+	call InitSound
+	put [wFrequencyTimer], 0
 	ret
 
-.DrawTilemap:
-	ld hl, vBGMap0 + BG_WIDTH * Y + X
-	ld a, START_TILE
-	ld b, HEIGHT
-	ld c, WIDTH
-	jp DrawTilemapRect
+IncFrequency:
+	call GetFrequencyPair1
+	ld a, [wFrequencyTimer]
+	call Lerp
+	ld d, h
+	ld e, l
+	call SetFrequency1
 
-.SetPalette:
-	ld a, %11100100 ; quaternary: 3210
-	ld [rOBP0], a
-	ld [rOBP1], a
-	ld [rBGP], a
+	call GetFrequencyPair2
+	ld a, [wFrequencyTimer]
+	call Lerp
+	ld d, h
+	ld e, l
+	call SetFrequency2
+
+	call GetFrequencyPair3
+	ld a, [wFrequencyTimer]
+	call Lerp
+	ld d, h
+	ld e, l
+	call SetFrequency3
+
+	ld a, [wFrequencyTimer]
+	add 2
+	ld [wFrequencyTimer], a
+	jnz .done
+	call NextNote
+.done
 	ret
-
-.Graphics:
-	INCBIN "gfx/hello_world.2bpp"
