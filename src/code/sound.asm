@@ -1,6 +1,3 @@
-WAVE_SIZE EQU 16
-
-
 SECTION "Sound WRAM", WRAM0
 
 wPitch1:  ds 1
@@ -22,21 +19,21 @@ wVolume3: ds 1
 SECTION "Sound", ROM0
 
 InitSound::
-	put [rNR52], %10000000 ; sound enabled
-	put [rNR51], %01110111 ; all output
-	put [rNR50], $77       ; stereo panning
+	put [rAUDENA], AUDENA_ON
+	put [rAUDTERM], AUDTERM_3_LEFT | AUDTERM_2_LEFT | AUDTERM_1_LEFT | AUDTERM_3_RIGHT | AUDTERM_2_RIGHT | AUDTERM_1_RIGHT
+	put [rAUDVOL], AUDVOL_LEFT | AUDVOL_RIGHT
 
-	put [rNR10], %00000000 ; no sweep
-	put [rNR11], %10000000 ; square wave
-	put [rNR12], %00010000 ; 1/15th volume
-	put [rNR14], %00000000 ; counter mode off
+	put [rAUD1SWEEP], 0 ; no sweep
+	put [rAUD1LEN], AUD1LEN_DUTY_50
+	put [rAUD1ENV], 1 << 4 ; 1/15th volume
+	put [rAUD1HIGH], AUD1HIGH_LENGTH_OFF
 
-	put [rNR21], %10000000 ; square wave
-	put [rNR22], %11110000 ; 100% volume
-	put [rNR24], %00000000 ; counter mode off
+	put [rAUD2LEN], AUD2LEN_DUTY_50
+	put [rAUD2ENV], 15 << 4 ; 100% volume
+	put [rAUD2HIGH], AUD2HIGH_LENGTH_OFF
 
-	put [rNR32], %00100000 ; 100% volume
-	put [rNR34], %00000000 ; counter mode off
+	put [rAUD3LEVEL], AUD3LEVEL_100 ; 100% volume
+	put [rAUD3HIGH], AUD3HIGH_LENGTH_OFF
 
 	put [wPitch1], 0
 	put [wOctave1], 7
@@ -55,11 +52,11 @@ InitSound::
 	ret
 
 LoadWave:
-	put [rNR30], %00000000 ; ch3 off
+	put [rAUD3ENA], AUD3ENA_OFF
 	put b, [wVolume3]
 	swap a
 	or b
-	ld hl, rWave
+	ld hl, _AUD3WAVERAM
 	REPT 8
 	ld [hli], a
 	ENDR
@@ -67,7 +64,7 @@ LoadWave:
 	REPT 8
 	ld [hli], a
 	ENDR
-	put [rNR30], %10000000 ; ch3 on
+	put [rAUD3ENA], AUD3ENA_ON
 	ret
 
 PlayNote::
@@ -81,11 +78,11 @@ PlayNote1:
 	ld a, [wPitch1]
 	call CalculateFrequency
 	ld a, e
-	ld [rNR13], a
+	ld [rAUD1LOW], a
 	ld [wFreq1], a
 	ld a, d
 	res 6, a
-	ld [rNR14], a
+	ld [rAUD1HIGH], a
 	ld [wFreq1 + 1], a
 	ret
 
@@ -94,11 +91,11 @@ PlayNote2:
 	ld a, [wPitch2]
 	call CalculateFrequency
 	ld a, e
-	ld [rNR23], a
+	ld [rAUD2LOW], a
 	ld [wFreq2], a
 	ld a, d
 	res 6, a
-	ld [rNR24], a
+	ld [rAUD2HIGH], a
 	ld [wFreq2 + 1], a
 	ret
 
@@ -108,44 +105,44 @@ PlayNote3:
 	ld a, [wPitch3]
 	call CalculateFrequency
 	ld a, e
-	ld [rNR33], a
+	ld [rAUD3LOW], a
 	ld [wFreq3], a
 	ld a, d
 	res 6, a
-	ld [rNR34], a
+	ld [rAUD3HIGH], a
 	ld [wFreq3 + 1], a
 	ret
 
 SetFrequency1::
 	ld a, e
-	ld [rNR13], a
+	ld [rAUD1LOW], a
 	ld [wFreq1], a
 	ld a, d
 	res 6, a
 	res 7, a
-	ld [rNR14], a
+	ld [rAUD1HIGH], a
 	ld [wFreq1 + 1], a
 	ret
 
 SetFrequency2::
 	ld a, e
-	ld [rNR23], a
+	ld [rAUD2LOW], a
 	ld [wFreq2], a
 	ld a, d
 	res 6, a
 	res 7, a
-	ld [rNR24], a
+	ld [rAUD2HIGH], a
 	ld [wFreq2 + 1], a
 	ret
 
 SetFrequency3::
 	ld a, e
-	ld [rNR33], a
+	ld [rAUD3LOW], a
 	ld [wFreq3], a
 	ld a, d
 	res 6, a
 	res 7, a
-	ld [rNR34], a
+	ld [rAUD3HIGH], a
 	ld [wFreq3 + 1], a
 	ret
 
@@ -274,12 +271,12 @@ SetVolume1:
 
 	ld [wVolume1], a
 	swap a
-	ld [rNR12], a
+	ld [rAUD1ENV], a
 
-	put [rNR13], [wFreq1]
+	put [rAUD1LOW], [wFreq1]
 	ld a, [wFreq1 + 1]
 	set 7, a
-	ld [rNR14], a
+	ld [rAUD1HIGH], a
 
 .same
 	ret
@@ -302,12 +299,12 @@ SetVolume2:
 
 	ld [wVolume2], a
 	swap a
-	ld [rNR22], a
+	ld [rAUD2ENV], a
 
-	put [rNR23], [wFreq2]
+	put [rAUD2LOW], [wFreq2]
 	ld a, [wFreq2 + 1]
 	set 7, a
-	ld [rNR24], a
+	ld [rAUD2HIGH], a
 
 .same
 	ret
@@ -331,10 +328,10 @@ SetVolume3:
 	ld [wVolume3], a
 	call LoadWave
 
-	put [rNR33], [wFreq3]
+	put [rAUD3LOW], [wFreq3]
 	ld a, [wFreq3 + 1]
 	set 7, a
-	ld [rNR34], a
+	ld [rAUD3HIGH], a
 
 .same
 	ret

@@ -1,34 +1,34 @@
-put: macro
+MACRO put
 	ld a, \2
 	ld \1, a
-endm
+ENDM
 
-ldx: macro
-	rept _NARG
+MACRO ldx
+	REPT _NARG
 	ld \1, a
-	shift
-	endr
-endm
+	SHIFT
+	ENDR
+ENDM
 
-farcall: macro
+MACRO farcall
 	rst FarCall
 	db  bank(\1)
 	dw  \1
-endm
+ENDM
 
-callback: macro
+MACRO callback
 	ld a, bank(\1)
 	ld hl, \1
 	call Callback
-endm
+ENDM
 
-task: macro
+MACRO task
 	ld a, bank(\1)
 	ld de, \1
 	call CreateTask
-endm
+ENDM
 
-fill: macro
+MACRO fill
 	ld hl, \1
 	ld bc, \2
 .loop\@
@@ -38,12 +38,12 @@ fill: macro
 	ld a, b
 	or c
 	jr nz, .loop\@
-endm
+ENDM
 
 
 ; jp to \2 if a == \1
-je: MACRO
-	IF "\1" == "0"
+MACRO je
+	IF "\1" === "0"
 		and a
 	ELSE
 		cp \1
@@ -52,8 +52,8 @@ je: MACRO
 ENDM
 
 ; jp to \2 if a != \1
-jne: MACRO
-	IF "\1" == "0"
+MACRO jne
+	IF "\1" === "0"
 		and a
 	ELSE
 		cp \1
@@ -62,13 +62,13 @@ jne: MACRO
 ENDM
 
 ; jp to \2 if a < \1
-jl: MACRO
+MACRO jl
 	cp \1
 	jp c, \2
 ENDM
 
 ; jp to \2 if a > \1
-jg: MACRO
+MACRO jg
 	cp \1
 	jr z, .notGreater\@
 	jr c, .notGreater\@
@@ -77,32 +77,32 @@ jg: MACRO
 ENDM
 
 ; jp to \2 if a <= \1
-jle: MACRO
+MACRO jle
 	cp \1
 	jp z, \2
 	jp c, \2
 ENDM
 
 ; jp to \2 if a >= \1
-jge: MACRO
+MACRO jge
 	cp \1
 	jp nc, \2
 ENDM
 
 ; jp to \1 if a == 0
-jz: MACRO
+MACRO jz
 	je 0, \1
 ENDM
 
 ; jp to \1 if a != 0
-jnz: MACRO
+MACRO jnz
 	jne 0, \1
 ENDM
 
 ; jp to \3 if bit \1 of register \2 == 1
 ; or
 ; jp to \2 if bit \1 of register a == 1
-jb: MACRO
+MACRO jb
 	IF _NARG > 2
 		bit \1, \2
 		jp nz, \3
@@ -115,7 +115,7 @@ ENDM
 ; jp to \3 if bit \1 of register \2 == 0
 ; or
 ; jp to \2 if bit \1 of register a == 0
-jbz: MACRO
+MACRO jbz
 	IF _NARG > 2
 		bit \1, \2
 		jp z, \3
@@ -126,39 +126,39 @@ jbz: MACRO
 ENDM
 
 ; ld 8-bit register \2 into 16-bit register \1
-ldr: MACRO
-	IF "\1" == "bc"
+MACRO ldr
+	IF "\1" === "bc"
 		ld c, \2
 		ld b, 0
 	ENDC
-	IF "\1" == "de"
+	IF "\1" === "de"
 		ld e, \2
 		ld d, 0
 	ENDC
-	IF "\1" == "hl"
+	IF "\1" === "hl"
 		ld l, \2
 		ld h, 0
 	ENDC
 ENDM
 
 
-RGB: macro
-	db (\1) + (\2) << 5 + (\3) << 10
-endm
+MACRO RGB
+	dw (\1) + (\2) << 5 + (\3) << 10
+ENDM
 
 
-enum_start: macro
-	if _NARG
-__enum__ = \1
-	else
-__enum__ = 0
-	endc
-endm
+MACRO enum_start
+	IF _NARG
+		DEF __enum__ = \1
+	ELSE
+		DEF __enum__ = 0
+	ENDC
+ENDM
 
-enum: macro
-	rept _NARG
-\1 = __enum__
-__enum__ = __enum__ + 1
-	shift
-	endr
-endm
+MACRO enum
+	REPT _NARG
+		DEF \1 = __enum__
+		DEF __enum__ = __enum__ + 1
+	SHIFT
+	ENDR
+ENDM

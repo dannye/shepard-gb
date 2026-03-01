@@ -1,34 +1,29 @@
-BUTTONS = $10
-D_PAD   = $20
-DONE    = $30
-
-
-section "joypad", rom0
+SECTION "Joypad", ROM0
 
 Joypad::
-	put [rJOYP], D_PAD
-	rept 2
+	put [rJOYP], JOYP_GET_CTRL_PAD
+	REPT 2
 	ld a, [rJOYP]
-	endr
+	ENDR
 
 	cpl
-	and %1111
+	and JOYP_INPUTS
 	swap a
 
 	ld b, a
 
-	put [rJOYP], BUTTONS
-	rept 6
+	put [rJOYP], JOYP_GET_BUTTONS
+	REPT 6
 	ld a, [rJOYP]
-	endr
+	ENDR
 
 	cpl
-	and %1111
+	and JOYP_INPUTS
 	or b
 
 	ld b, a
 
-	put [rJOYP], DONE
+	put [rJOYP], JOYP_GET_NONE
 
 	ld a, [wJoy]
 	ld [wJoyLast], a
@@ -50,9 +45,9 @@ Joypad::
 	ret
 
 
-section "joypad wram", wram0
+SECTION "Joypad WRAM", WRAM0
 
-wJoy::         db
-wJoyLast::     db
-wJoyPressed::  db
-wJoyReleased:: db
+wJoy::         ds 1
+wJoyLast::     ds 1
+wJoyPressed::  ds 1
+wJoyReleased:: ds 1

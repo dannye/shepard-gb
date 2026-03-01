@@ -1,15 +1,15 @@
-section "stack", wram0 [$c080]
+SECTION "Stack", WRAM0[$C080]
 
 	ds $80 - 1
 wStack::
 
 
-section "init", rom0
+SECTION "Init", ROM0
 
 Init:
 	di
 
-	cp $11
+	cp BOOTUP_A_CGB
 	ld a, 1
 	jr z, .cgb
 	xor a
@@ -25,11 +25,11 @@ Init:
 	ldx [rBGP], [rOBP0], [rOBP1]
 	ldx [rTMA], [rTAC]
 
-	put [rTAC], rTAC_4096Hz
+	put [rTAC], TAC_4KHZ
 
 .wait
 	ld a, [rLY]
-	cp 144
+	cp LY_VBLANK
 	jr c, .wait
 
 	xor a
@@ -38,7 +38,7 @@ Init:
 
 	ld sp, wStack
 
-	fill $c000, $2000, 0
+	fill $C000, $2000, 0
 
 	ld a, [hGBC]
 	and a
@@ -47,8 +47,8 @@ Init:
 	ld a, 7
 .wram_bank
 	push af
-	ld [rSVBK], a
-	fill $d000, $1000, 0
+	ld [rWBK], a
+	fill $D000, $1000, 0
 	pop af
 	dec a
 	cp 1
@@ -57,30 +57,30 @@ Init:
 
 	ld a, [hGBC]
 	push af
-	fill $ff80, $7f, 0
+	fill $FF80, $7F, 0
 	pop af
 	ld [hGBC], a
 
 	fill $8000, $2000, 0
 
-	fill $fe00, $a0, 0
+	fill $FE00, $A0, 0
 
 
 	put [rJOYP], 0
-	put [rSTAT], 8 ; hblank enable
+	put [rSTAT], STAT_MODE_0 ; hblank enable
 	put [rWY], $90
-	put [rWX], 7
+	put [rWX], WX_OFS
 
-	put [rLCDC], %11100011
+	put [rLCDC], LCDC_ON | LCDC_WIN_9C00 | LCDC_WIN_ON | LCDC_BLOCK21 | LCDC_BG_9800 | LCDC_OBJ_8 | LCDC_OBJ_ON | LCDC_BG_ON
 
-if def(NormalSpeed) ; not implemented yet
+IF def(NormalSpeed) ; not implemented yet
 	ld a, [hGBC]
 	and a
 	call nz, NormalSpeed
-endc
+ENDC
 
 	put [rIF], 0
-	put [rIE], %1111
+	put [rIE], IE_SERIAL | IE_TIMER | IE_STAT | IE_VBLANK
 
 	ei
 

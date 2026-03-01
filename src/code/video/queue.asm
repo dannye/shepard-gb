@@ -1,15 +1,15 @@
-GFX_QUEUE_LIMIT = 10
-GFX_QUEUE_LENGTH = 2 + 2 + 1
+DEF GFX_QUEUE_LIMIT  EQU 10
+DEF GFX_QUEUE_LENGTH EQU 2 + 2 + 1
 
 
-section "gfx queue wram", wram0
+SECTION "Gfx Queue WRAM", WRAM0
 
 wGfxQueue:
 	ds 1
 	ds GFX_QUEUE_LENGTH * GFX_QUEUE_LIMIT
 
 
-section "gfx queue", rom0
+SECTION "Gfx Queue", ROM0
 
 QueueGfx::
 ; a:  length
@@ -89,13 +89,13 @@ QueueGfx::
 	ret
 
 
-LoadGfxQueue:
+CheckGfxQueue:
 	ld hl, wGfxQueue
 	ld a, [hli]
 	and a
 	ret z
 
-	call LoadGfx
+	call LoadGfxFromQueue
 
 	ld a, [wGfxQueue]
 	dec a
@@ -107,7 +107,7 @@ LoadGfxQueue:
 	ret
 
 
-LoadGfx:
+LoadGfxFromQueue:
 	ld c, [hl]
 	inc hl
 	ld b, [hl]
@@ -121,17 +121,20 @@ LoadGfx:
 ;	and a
 ;	ret z
 
+; only call this directly if LCD is disabled
+; otherwise use graphics queue
+LoadGfx::
 	push hl
 	ld l, e
 	ld h, d
 .loop
 	ld e, a
 
-	rept 16
+	REPT 16
 	ld a, [bc]
 	inc bc
 	ld [hli], a
-	endr
+	ENDR
 
 	ld a, e
 	dec a
@@ -153,8 +156,8 @@ ShiftGfxQueue:
 	jr nz, .loop
 
 ;	xor a
-;	rept GFX_QUEUE_LENGTH
+;	REPT GFX_QUEUE_LENGTH
 ;	ld [hli], a
-;	endr
+;	ENDR
 
 	ret

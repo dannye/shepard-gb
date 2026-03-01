@@ -4,33 +4,33 @@
 ; The other vectors are free to use for any purpose.
 
 
-section "rst Bankswitch", rom0 [Bankswitch]
+SECTION "rst Bankswitch", ROM0[Bankswitch]
 	ld [hROMBank], a
-	ld [MBC5_ROMBank], a
+	ld [rROMB], a
 	ret
 
-section "rst FarCall", rom0 [FarCall]
+SECTION "rst FarCall", ROM0[FarCall]
 	jp FarCall_
 
 
-section "rst $10", rom0 [$10]
-section "rst $18", rom0 [$18]
-section "rst $20", rom0 [$20]
-section "rst $28", rom0 [$28]
-section "rst $30", rom0 [$30]
-section "rst $38", rom0 [$38]
+SECTION "rst $10", ROM0[$10]
+SECTION "rst $18", ROM0[$18]
+SECTION "rst $20", ROM0[$20]
+SECTION "rst $28", ROM0[$28]
+SECTION "rst $30", ROM0[$30]
+SECTION "rst $38", ROM0[$38]
 
 
-section "farcall", rom0
+SECTION "FarCall", ROM0
 
 FarCall_:
 	ld  [wFarCallHold + 0], a
-	put [wFarCallHold + 1], h
-	put [wFarCallHold + 2], l
+	put [wFarCallHold + 1], l
+	put [wFarCallHold + 2], h
 
 	pop hl
 	put [wFarCallBank],        [hli]
-	put [wFarCallTarget],      $c3 ; <jp>
+	put [wFarCallTarget],      $C3 ; <jp>
 	put [wFarCallAddress + 0], [hli]
 	put [wFarCallAddress + 1], [hli]
 	push hl
@@ -57,12 +57,13 @@ FarCall_:
 	rst Bankswitch
 
 	pop af
+	add sp, 2
 	ret
 
 
-section "farcall wram", wram0
+SECTION "FarCall WRAM", WRAM0
 
 wFarCallHold:    ds 3
-wFarCallBank:    db
-wFarCallTarget:  db ; jp
-wFarCallAddress: dw
+wFarCallBank:    ds 1
+wFarCallTarget:  ds 1 ; jp
+wFarCallAddress: ds 2

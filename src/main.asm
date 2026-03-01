@@ -1,12 +1,12 @@
-include "constants.asm"
+INCLUDE "constants.asm"
 
 
-section "Main WRAM", wram0
+SECTION "Main WRAM", WRAM0
 
 wFrequencyTimer: ds 1
 
 
-section "Main", rom0
+SECTION "Main", ROM0
 
 Main::
 	call .Setup
